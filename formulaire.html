@@ -17,6 +17,10 @@
 body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.5 "Source Sans 3",system-ui,sans-serif}
 .wrap{max-width:760px;margin:0 auto;padding:24px 16px 64px}
 header{text-align:center;padding:24px 0 8px}
+.logo{display:block;height:72px;width:auto;margin:0 auto 18px}
+.antan{margin:0 0 20px;background:#fff;padding:10px 10px 8px;border-radius:6px;box-shadow:0 8px 24px #2b242022;transform:rotate(-.6deg)}
+.antan img{display:block;width:100%;height:auto;border-radius:2px;filter:sepia(.25)}
+.antan figcaption{font-size:12.5px;color:var(--muted);margin-top:6px;font-style:italic}
 .badge{display:inline-block;border:2px solid var(--accent-2);color:var(--accent-2);border-radius:999px;padding:4px 14px;font-weight:700;letter-spacing:.08em;font-size:13px;text-transform:uppercase}
 h1{font-family:"DM Serif Display",serif;font-weight:400;color:var(--accent);font-size:clamp(30px,6vw,44px);line-height:1.1;margin:14px 0 10px}
 .intro{color:var(--muted);max-width:600px;margin:0 auto}
@@ -74,6 +78,12 @@ footer{text-align:center;color:var(--muted);font-size:13px;margin-top:28px}
 <div class="wrap">
 
 <header>
+  <img class="logo" src="logo-ucab.png" alt="UCAB – Union des Commerçants et Artisans de Belley"
+       onerror="this.onerror=null;this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjRu5-4YrGODmMQM5IrAO-BfuS861LP4N5QrHHuZQRqH_JRYLa5PlyPw2h&s=10'">
+  <figure class="antan">
+    <img src="belley-antan.jpg" alt="Carte postale ancienne : Belley, un coin du Mail et de la rue des Capucins, avec ses commerces">
+    <figcaption>Belley, un coin du Mail et de la rue des Capucins – carte postale du début du XX<sup>e</sup> siècle · Doc. ABIS</figcaption>
+  </figure>
   <span class="badge">UCAB · 1977 – 2027</span>
   <h1>Prêtez-nous un morceau<br>d'histoire du commerce</h1>
   <p class="intro">Pour ses <b>50 ans</b>, l'Union des Commerçants et Artisans de Belley prépare une exposition à la <b>salle des fêtes</b>. Balance, boîte en fer, enseigne, caisse, sachet, tablier, catalogue… <b>Vous avez gardé un objet des commerces d'antan ?</b> Proposez-le, il sera rendu à la fin de l'expo.</p>
@@ -146,12 +156,14 @@ footer{text-align:center;color:var(--muted);font-size:13px;margin-top:28px}
           </select></div>
         <div><label>Époque <span class="opt">(même approximative)</span></label><input type="text" data-k="epoque" placeholder="Ex. années 1950"></div>
       </div>
-      <div><label>Lien avec Belley</label>
+      <div><label>Un lien avec Belley ?</label>
         <div class="chips" data-radio="lien">
-          <label class="chip"><input type="radio" value="Commerce de Belley"><span>Vient d'un commerce de Belley</span></label>
-          <label class="chip"><input type="radio" value="Commerce des environs"><span>Des environs</span></label>
-          <label class="chip"><input type="radio" value="Commerce d'ailleurs"><span>D'ailleurs</span></label>
-          <label class="chip"><input type="radio" value="Inconnu"><span>Je ne sais pas</span></label>
+          <label class="chip"><input type="radio" value="Oui"><span>Oui</span></label>
+          <label class="chip"><input type="radio" value="Non"><span>Non</span></label>
+        </div>
+        <div class="lien-detail" hidden style="margin-top:10px">
+          <label>Lequel ?</label>
+          <input type="text" data-k="lienDetail" placeholder="Ex. vient de l'épicerie de mes grands-parents, rue des Capucins">
         </div></div>
       <div><label>Commerce d'origine <span class="opt">(nom, adresse, famille… si connu)</span></label><input type="text" data-k="commerce" placeholder="Ex. Épicerie Martin, Grande Rue"></div>
       <div><label>Son histoire <span class="opt">(facultatif)</span></label><textarea data-k="histoire" placeholder="Comment est-il arrivé chez vous ? À quoi servait-il ? Une anecdote ?"></textarea></div>
@@ -204,6 +216,11 @@ function addObjet() {
   node.photos = [];
   // noms uniques pour les boutons radio
   node.querySelectorAll('[data-radio]').forEach(g => g.querySelectorAll('input').forEach(i => i.name = g.dataset.radio + id));
+  const detail = node.querySelector('.lien-detail');
+  node.querySelectorAll('[data-radio="lien"] input').forEach(i => i.onchange = () => {
+    detail.hidden = i.value !== 'Oui';
+    if (!detail.hidden) detail.querySelector('input').focus();
+  });
   node.querySelector('.btn-del').onclick = () => { node.remove(); renumber(); };
   const drop = node.querySelector('.drop'), file = node.querySelector('input[type=file]');
   drop.onclick = () => file.click();
@@ -275,9 +292,10 @@ function collect() {
     const multi = [...o.querySelectorAll('[data-multi="contraintes"] input:checked')].map(i => i.value);
     const txt = val(o, 'contraintesTxt');
     if (txt) multi.push(txt);
+    const lien = radio('lien'), lienDetail = val(o, 'lienDetail');
     return {
       nom: val(o, 'nom'), categorie: val(o, 'categorie'), epoque: val(o, 'epoque'),
-      lien: radio('lien'), commerce: val(o, 'commerce'), histoire: val(o, 'histoire'),
+      lien: lien === 'Oui' && lienDetail ? 'Oui – ' + lienDetail : lien, commerce: val(o, 'commerce'), histoire: val(o, 'histoire'),
       dimensions: val(o, 'dimensions'), poids: val(o, 'poids'), etat: val(o, 'etat'),
       contraintes: multi.join(' ; '), type: radio('type'),
       photos: o.photos.filter(p => p.data).map(p => ({ data: p.data }))
